@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>true</IsPackable>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>SharpAstrology.HumanDesign</PackageId>
+        <PackageTags>Astrology, Human Design</PackageTags>
+        <Version>1.1.2</Version>
+        <Authors>Christian Reizner</Authors>
+        <Description>
+            This package is part of the SharpAstrology project. 
+            It provides all the tools to calculate the common Human Design Body Graph.
+        </Description>
+        <RepositoryUrl>https://github.com/CReizner/SharpAstrology.HumanDesign</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/CReizner/SharpAstrology.HumanDesign</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="$(PackageReadmeFile)" CopyToOutputDirectory="Always"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpAstrology.Base" Version="[0.8.0,)" />
+    </ItemGroup>
+    
+</Project>
