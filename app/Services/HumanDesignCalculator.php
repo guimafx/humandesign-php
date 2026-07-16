@@ -10,6 +10,20 @@ final class HumanDesignCalculator
 {
     private ActivationMapper $mapper;
 
+    private const PERSONALITY_BODIES = [
+        'SUN',
+        'MOON',
+        'NORTH_NODE',
+        'MERCURY',
+        'VENUS',
+        'MARS',
+        'JUPITER',
+        'SATURN',
+        'URANUS',
+        'NEPTUNE',
+        'PLUTO',
+    ];
+
     private const CHANNELS = [
         [1,8],[2,14],[3,60],[4,63],[5,15],[6,59],
         [7,31],[9,52],[10,20],[10,34],[10,57],
@@ -45,19 +59,44 @@ final class HumanDesignCalculator
     {
         $utc = $birth->utc();
 
-        // Núcleo mínimo. Os demais corpos entram no próximo passo.
-        $bodies = ['SUN', 'NORTH_NODE'];
-        $personality = [];
+        $longitudes = [];
 
-        foreach ($bodies as $body) {
-            $longitude = $this->ephemeris->longitude(
+        foreach (self::PERSONALITY_BODIES as $body) {
+            $longitudes[$body] = $this->ephemeris->longitude(
                 $utc,
                 $body,
                 $birth->latitude,
                 $birth->longitude
             );
+        }
 
-            $personality[$body] = $this->mapper->map($body, $longitude);
+        $longitudes['EARTH'] = $this->oppositeLongitude($longitudes['SUN']);
+        $longitudes['SOUTH_NODE'] = $this->oppositeLongitude(
+            $longitudes['NORTH_NODE']
+        );
+
+        $bodyOrder = [
+            'SUN',
+            'EARTH',
+            'MOON',
+            'NORTH_NODE',
+            'SOUTH_NODE',
+            'MERCURY',
+            'VENUS',
+            'MARS',
+            'JUPITER',
+            'SATURN',
+            'URANUS',
+            'NEPTUNE',
+            'PLUTO',
+        ];
+        $personality = [];
+
+        foreach ($bodyOrder as $body) {
+            $personality[$body] = $this->mapper->map(
+                $body,
+                $longitudes[$body]
+            );
         }
 
         $activeGates = [];
@@ -90,6 +129,11 @@ final class HumanDesignCalculator
             'defined_centers' => array_values(array_keys($definedCenters)),
             'status' => 'foundation',
         ];
+    }
+
+    private function oppositeLongitude(float $longitude): float
+    {
+        return fmod($longitude + 180.0, 360.0);
     }
 
     private function detectDefinition(array $activeGates): array
