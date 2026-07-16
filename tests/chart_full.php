@@ -82,6 +82,17 @@ if ($result['defined_centers'] !== $expectedCenters) {
     throw new RuntimeException('Centros definidos divergentes: ' . implode(', ', $result['defined_centers']));
 }
 
+if ($result['profile']['value'] !== '3/6'
+    || $result['profile']['personality_line'] !== 3
+    || $result['profile']['design_line'] !== 6) {
+    throw new RuntimeException('Perfil divergente.');
+}
+
+if ($result['incarnation_cross']['gates'] !== [17, 18, 58, 52]
+    || $result['incarnation_cross']['status'] !== 'unresolved') {
+    throw new RuntimeException('Estrutura-base da Cruz de Encarnação divergente.');
+}
+
 if ($result['metadata']['reliable'] !== true
     || $result['metadata']['ephemeris'] !== 'swiss-ephemeris-swetest') {
     throw new RuntimeException('Metadados do Swiss Ephemeris divergentes.');

@@ -15,6 +15,8 @@ final class HumanDesignCalculator
     private readonly DefinitionCalculator $definitionCalculator;
     private readonly TypeCalculator $typeCalculator;
     private readonly AuthorityCalculator $authorityCalculator;
+    private readonly ProfileCalculator $profileCalculator;
+    private readonly IncarnationCrossCalculator $incarnationCrossCalculator;
 
     private const EPHEMERIS_BODIES = [
         'SUN',
@@ -53,7 +55,9 @@ final class HumanDesignCalculator
         ?CenterCalculator $centerCalculator = null,
         ?DefinitionCalculator $definitionCalculator = null,
         ?TypeCalculator $typeCalculator = null,
-        ?AuthorityCalculator $authorityCalculator = null
+        ?AuthorityCalculator $authorityCalculator = null,
+        ?ProfileCalculator $profileCalculator = null,
+        ?IncarnationCrossCalculator $incarnationCrossCalculator = null
     ) {
         $this->mapper = new ActivationMapper();
         $this->designDateCalculator = $designDateCalculator
@@ -66,6 +70,9 @@ final class HumanDesignCalculator
         $this->typeCalculator = $typeCalculator
             ?? new TypeCalculator($this->channelCalculator);
         $this->authorityCalculator = $authorityCalculator ?? new AuthorityCalculator();
+        $this->profileCalculator = $profileCalculator ?? new ProfileCalculator();
+        $this->incarnationCrossCalculator = $incarnationCrossCalculator
+            ?? new IncarnationCrossCalculator();
     }
 
     public function calculate(BirthData $birth): array
@@ -124,6 +131,16 @@ final class HumanDesignCalculator
             'type' => $this->typeCalculator->calculate($definedCenters, $activeChannels),
             'authority' => $this->authorityCalculator->calculate($definedCenters),
             'definition' => $this->definitionCalculator->calculate($definedCenters, $activeChannels),
+            'profile' => $this->profileCalculator->calculate(
+                $personality['SUN']->line,
+                $design['SUN']->line
+            ),
+            'incarnation_cross' => $this->incarnationCrossCalculator->calculate(
+                $personality['SUN']->gate,
+                $personality['EARTH']->gate,
+                $design['SUN']->gate,
+                $design['EARTH']->gate
+            ),
             'status' => 'foundation',
         ];
     }
