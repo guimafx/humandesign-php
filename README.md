@@ -96,6 +96,16 @@ Autoridade segue a hierarquia de centros definidos: Plexo Solar, Sacral, Baço,
 Ego, G, Mental e Lunar. Um mapa sem centros recebe `No Definition`, pois Single,
 Split, Triple Split e Quadruple Split pressupõem ao menos um centro definido.
 
+O Perfil é calculado a partir das linhas dos Sóis de Personality e Design,
+nessa ordem. No mapa de referência atual, Personality Sun 17.3 e Design Sun
+58.6 resultam no Perfil `3/6`.
+
+A Cruz de Encarnação é exposta inicialmente como uma estrutura ordenada de
+quatro gates: Sol e Terra de Personality, seguidos por Sol e Terra de Design.
+No mapa de referência, a estrutura contém `[17, 18, 58, 52]`. Nome, quarter e
+angle permanecem nulos, com status `unresolved`, até existir uma tabela de
+referência validada. Dados incompletos não são apresentados como definitivos.
+
 ## Estrutura
 
 ```text
@@ -114,6 +124,5 @@ tests/
 
 ## Próximos passos
 
-1. Implementar tipo, autoridade e definição.
-2. Implementar perfil e cruz de encarnação.
-3. Implementar o visual completo do BodyGraph.
+1. Resolver nome, quarter e angle da Cruz de Encarnação com tabela validada.
+2. Implementar o visual completo do BodyGraph.
