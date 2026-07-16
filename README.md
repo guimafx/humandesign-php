@@ -80,9 +80,14 @@ A sequência Rave avança com a longitude zodiacal a partir do limite inicial do
 portão 41 em 302°. O modo `demo` permanece disponível apenas para testes da
 interface, enquanto o modo `strict` bloqueia cálculos sem um provedor real.
 
-Ainda falta integrar todos os corpos e o lado Design ao
-`HumanDesignCalculator`. O mapa visual completo também ainda não está
-implementado.
+O `HumanDesignCalculator` calcula os 13 corpos de Personality e os 13 corpos
+de Design. A data Design é encontrada astronomicamente no instante anterior
+em que o Sol está exatamente 88° atrás do Sol natal, com localização de
+intervalo e bisseção; ela não é obtida subtraindo uma quantidade fixa de dias.
+A referência validada é `1981-12-30 08:47:00 UTC` para o nascimento acima.
+
+As 26 ativações alimentam a união ordenada `active_gates`, e canais completos
+e centros definidos são recalculados a partir dessa união dos dois lados.
 
 ## Estrutura
 
@@ -102,7 +107,6 @@ tests/
 
 ## Próximos passos
 
-1. Integrar todos os corpos celestes ao cálculo principal.
-2. Integrar o lado Design ao cálculo principal.
-3. Corrigir e validar centros por canais completos.
-4. Implementar o mapa visual completo.
+1. Implementar tipo, autoridade e definição.
+2. Implementar perfil e cruz de encarnação.
+3. Implementar o visual completo do BodyGraph.

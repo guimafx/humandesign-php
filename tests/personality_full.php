@@ -62,9 +62,9 @@ $expectedActiveGates = array_values(array_unique(array_map(
     $expected
 )));
 
-if ($result['active_gates'] !== $expectedActiveGates) {
+if (array_values(array_intersect($result['active_gates'], $expectedActiveGates)) !== $expectedActiveGates) {
     throw new RuntimeException(sprintf(
-        'active_gates: esperado [%s], obtido [%s]',
+        'active_gates não contém todos os gates de Personality: esperado [%s], obtido [%s]',
         implode(', ', $expectedActiveGates),
         implode(', ', $result['active_gates'])
     ));

@@ -22,6 +22,8 @@ $result = $calculator->calculate($birth);
 
 assert(isset($result['metadata']));
 assert(isset($result['personality']['SUN']));
+assert(isset($result['design']['SUN']));
+assert(isset($result['design_date']));
 assert($result['metadata']['reliable'] === false);
 
 echo "Smoke test OK\n";
