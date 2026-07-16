@@ -1,0 +1,39 @@
+name: Feature request
+description: Proponha uma melhoria verificável e compatível com o escopo técnico.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Qual necessidade concreta ainda não é atendida?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+    validations:
+      required: true
+  - type: textarea
+    id: core-impact
+    attributes:
+      label: Impacto no core
+      description: Explique efeitos em cálculo, API, desempenho e compatibilidade.
+    validations:
+      required: true
+  - type: textarea
+    id: validation-source
+    attributes:
+      label: Fonte de validação
+      description: Informe origem e método de verificação sem copiar material protegido.
+    validations:
+      required: true
+  - type: textarea
+    id: licensing
+    attributes:
+      label: Considerações de licença
+      description: Aponte dependências, dados ou tabelas e seus termos conhecidos.
+    validations:
+      required: true

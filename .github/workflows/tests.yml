@@ -1,0 +1,50 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install --yes build-essential git
+
+      - name: Build and install Swiss Ephemeris
+        run: |
+          git clone --depth 1 --branch v2.10.3final \
+            https://github.com/aloistr/swisseph.git \
+            "$RUNNER_TEMP/swisseph"
+          make -C "$RUNNER_TEMP/swisseph" swetest
+          sudo install -m 0755 "$RUNNER_TEMP/swisseph/swetest" /usr/local/bin/swetest
+          sudo mkdir -p /usr/local/share/swisseph/ephe
+          sudo cp -a "$RUNNER_TEMP/swisseph/ephe/." /usr/local/share/swisseph/ephe/
+
+      - name: Verify Swiss Ephemeris and PHP
+        run: |
+          command -v swetest
+          test -x /usr/local/bin/swetest
+          find /usr/local/share/swisseph/ephe -name '*.se1' -print -quit | grep .
+          swetest -edir/usr/local/share/swisseph/ephe -b27.3.1982 -utc14:05:00 -p0 -eswe -fPl -g, -head
+          php -v
+
+      - name: Run tests
+        run: bin/run-tests
