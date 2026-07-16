@@ -6,8 +6,9 @@ use App\Core\Application;
 use App\Core\Env;
 use App\Core\Router;
 use App\Services\DemoEphemerisProvider;
-use App\Services\StrictEphemerisProvider;
 use App\Services\HumanDesignCalculator;
+use App\Services\StrictEphemerisProvider;
+use App\Services\SwissEphemerisProvider;
 
 require dirname(__DIR__) . '/app/Core/Autoloader.php';
 
@@ -21,6 +22,13 @@ $driver = Env::get('EPHEMERIS_DRIVER', 'strict');
 
 $ephemeris = match ($driver) {
     'demo' => new DemoEphemerisProvider(),
+    'swiss' => new SwissEphemerisProvider(
+        (string) Env::get('SWETEST_BIN', '/usr/local/bin/swetest'),
+        (string) Env::get(
+            'SWISSEPH_EPHE_PATH',
+            '/usr/local/share/swisseph/ephe'
+        )
+    ),
     default => new StrictEphemerisProvider(),
 };
 

@@ -58,6 +58,21 @@ EPHEMERIS_DRIVER=demo
 
 O modo `demo` retorna dados marcados explicitamente como não confiáveis.
 
+## Swiss Ephemeris
+
+O driver `swiss` depende do executável `swetest` e dos arquivos de efemérides
+do Swiss Ephemeris. Configure seus caminhos com `SWETEST_BIN` e
+`SWISSEPH_EPHE_PATH` e ative-o com:
+
+```env
+EPHEMERIS_DRIVER=swiss
+```
+
+Esse modo produz longitudes astronômicas reais. A conversão das longitudes em
+Portões, Linhas, Cores, Tons e Bases ainda depende da validação do offset da
+Mandala Rave. O modo `demo` permanece disponível apenas para testes da
+interface, enquanto o modo `strict` bloqueia cálculos sem um provedor real.
+
 ## Estrutura
 
 ```text
@@ -76,8 +91,7 @@ tests/
 
 ## Próximos passos
 
-1. Implementar `SwissEphemerisProvider`.
-2. Validar o offset da Mandala Rave.
-3. Adicionar todos os corpos celestes.
-4. Corrigir e validar centros por canais completos.
-5. Criar testes contra mapas conhecidos.
+1. Validar o offset da Mandala Rave.
+2. Adicionar todos os corpos celestes.
+3. Corrigir e validar centros por canais completos.
+4. Criar testes contra mapas conhecidos.
