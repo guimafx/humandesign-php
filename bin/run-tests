@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+TEST_DIR="$ROOT_DIR/tests"
+count=0
+
+while IFS= read -r test_file; do
+    test_name=${test_file#"$ROOT_DIR/"}
+    printf '==> %s\n' "$test_name"
+    php "$test_file"
+    count=$((count + 1))
+done < <(find "$TEST_DIR" -maxdepth 1 -type f -name '*.php' -print | LC_ALL=C sort)
+
+if [ "$count" -eq 0 ]; then
+    printf 'Nenhum teste encontrado em %s\n' "$TEST_DIR" >&2
+    exit 1
+fi
+
+printf 'OK: %d testes executados com sucesso.\n' "$count"

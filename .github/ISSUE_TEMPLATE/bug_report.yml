@@ -1,0 +1,54 @@
+name: Bug report
+description: Relate um comportamento reproduzível do core ou da aplicação.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Não publique credenciais nem dados pessoais. Anonimize datas quando possível.
+  - type: input
+    id: php
+    attributes:
+      label: Versão do PHP
+      placeholder: "8.2.0"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Sistema operacional
+      placeholder: Ubuntu 24.04
+    validations:
+      required: true
+  - type: dropdown
+    id: driver
+    attributes:
+      label: Driver de efemérides
+      options: [swiss, demo, strict]
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Data, hora e timezone de exemplo
+      description: Anonimize quando possível e não inclua outros dados identificáveis.
+      placeholder: 2000-01-01 12:00, America/Sao_Paulo
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Resultado obtido
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reprodução ou teste
+      description: Inclua comandos mínimos, mensagem completa e um teste quando possível.
+    validations:
+      required: true
