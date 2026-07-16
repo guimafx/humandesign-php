@@ -9,11 +9,28 @@ use App\Domain\BirthData;
 final class HumanDesignCalculator
 {
     private ActivationMapper $mapper;
+    private readonly DesignDateCalculator $designDateCalculator;
 
-    private const PERSONALITY_BODIES = [
+    private const EPHEMERIS_BODIES = [
         'SUN',
         'MOON',
         'NORTH_NODE',
+        'MERCURY',
+        'VENUS',
+        'MARS',
+        'JUPITER',
+        'SATURN',
+        'URANUS',
+        'NEPTUNE',
+        'PLUTO',
+    ];
+
+    private const BODY_ORDER = [
+        'SUN',
+        'EARTH',
+        'MOON',
+        'NORTH_NODE',
+        'SOUTH_NODE',
         'MERCURY',
         'VENUS',
         'MARS',
@@ -50,59 +67,36 @@ final class HumanDesignCalculator
     ];
 
     public function __construct(
-        private readonly EphemerisProviderInterface $ephemeris
+        private readonly EphemerisProviderInterface $ephemeris,
+        ?DesignDateCalculator $designDateCalculator = null
     ) {
         $this->mapper = new ActivationMapper();
+        $this->designDateCalculator = $designDateCalculator
+            ?? new DesignDateCalculator($ephemeris);
     }
 
     public function calculate(BirthData $birth): array
     {
         $utc = $birth->utc();
 
-        $longitudes = [];
-
-        foreach (self::PERSONALITY_BODIES as $body) {
-            $longitudes[$body] = $this->ephemeris->longitude(
-                $utc,
-                $body,
-                $birth->latitude,
-                $birth->longitude
-            );
-        }
-
-        $longitudes['EARTH'] = $this->oppositeLongitude($longitudes['SUN']);
-        $longitudes['SOUTH_NODE'] = $this->oppositeLongitude(
-            $longitudes['NORTH_NODE']
+        $personality = $this->calculateActivations(
+            $utc,
+            $birth->latitude,
+            $birth->longitude
         );
-
-        $bodyOrder = [
-            'SUN',
-            'EARTH',
-            'MOON',
-            'NORTH_NODE',
-            'SOUTH_NODE',
-            'MERCURY',
-            'VENUS',
-            'MARS',
-            'JUPITER',
-            'SATURN',
-            'URANUS',
-            'NEPTUNE',
-            'PLUTO',
-        ];
-        $personality = [];
-
-        foreach ($bodyOrder as $body) {
-            $personality[$body] = $this->mapper->map(
-                $body,
-                $longitudes[$body]
-            );
-        }
+        $designDate = $this->designDateCalculator->calculate($utc);
+        $design = $this->calculateActivations(
+            $designDate,
+            $birth->latitude,
+            $birth->longitude
+        );
 
         $activeGates = [];
 
-        foreach ($personality as $activation) {
-            $activeGates[$activation->gate] = true;
+        foreach ([$personality, $design] as $side) {
+            foreach ($side as $activation) {
+                $activeGates[$activation->gate] = true;
+            }
         }
 
         [$activeChannels, $definedCenters] = $this->detectDefinition($activeGates);
@@ -120,15 +114,49 @@ final class HumanDesignCalculator
                 'utc' => $utc->format(DATE_ATOM),
                 'timezone' => $birth->timezone,
             ],
+            'design_date' => $designDate->format(DATE_ATOM),
             'personality' => array_map(
                 static fn ($activation) => $activation->toArray(),
                 $personality
+            ),
+            'design' => array_map(
+                static fn ($activation) => $activation->toArray(),
+                $design
             ),
             'active_gates' => array_map('intval', array_keys($activeGates)),
             'active_channels' => $activeChannels,
             'defined_centers' => array_values(array_keys($definedCenters)),
             'status' => 'foundation',
         ];
+    }
+
+    private function calculateActivations(
+        \DateTimeImmutable $utc,
+        ?float $latitude,
+        ?float $longitude
+    ): array {
+        $longitudes = [];
+
+        foreach (self::EPHEMERIS_BODIES as $body) {
+            $longitudes[$body] = $this->ephemeris->longitude(
+                $utc,
+                $body,
+                $latitude,
+                $longitude
+            );
+        }
+
+        $longitudes['EARTH'] = $this->oppositeLongitude($longitudes['SUN']);
+        $longitudes['SOUTH_NODE'] = $this->oppositeLongitude(
+            $longitudes['NORTH_NODE']
+        );
+        $activations = [];
+
+        foreach (self::BODY_ORDER as $body) {
+            $activations[$body] = $this->mapper->map($body, $longitudes[$body]);
+        }
+
+        return $activations;
     }
 
     private function oppositeLongitude(float $longitude): float
