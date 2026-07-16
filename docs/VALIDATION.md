@@ -1,6 +1,6 @@
 # Validação
 
-## Mapa de referência principal
+## Referência ativa atual
 
 - Nome: Guilherme Borges Viana
 - Nascimento local: 27/03/1982 11:05
@@ -44,6 +44,6 @@ Um único mapa completo é insuficiente para afirmar cobertura geral. Os testes 
 
 As referências ficam em `tests/reference/` e são carregadas por `tests/support/ReferenceChartLoader.php`, sem PHPUnit. Uma fixture ativa retorna `status`, `id`, `label`, `birth`, `expected`, `source` e `privacy`. O nascimento contém `date`, `time`, `timezone`, `latitude` e `longitude`; a fonte contém `provider`, `reference` e `checked_at`; privacidade contém os booleanos `consent` e `anonymized`.
 
-O runner `tests/reference_charts.php` calcula cada fixture ativa com Swiss Ephemeris e compara somente expectativas declaradas: IDs de tipo, autoridade e definição, valor do perfil, canais, centros e, quando fornecidas, ativações de Personality e Design. Arrays ordenados são comparados integralmente. A primeira divergência interrompe a execução e informa o id.
+O status `active` indica que nascimento, fonte, privacidade e ao menos uma expectativa estão completos; atualmente, a única referência ativa é `generator-emotional-001` (Generator Emotional Split 3/6). O runner `tests/reference_charts.php` calcula cada fixture ativa com Swiss Ephemeris e compara somente expectativas declaradas: `type.id`, `authority.id`, `definition.id`, `profile.value`, `active_channels`, `defined_centers` e, quando fornecidos, corpo, gate e line de Personality e Design. Canais e centros preservam a ordem da fixture e são comparados integralmente. A primeira divergência interrompe a execução e informa o id, lado e corpo quando aplicável.
 
-Fixtures `pending` são inventários de referências ainda ausentes, não casos de teste: não têm datas nem expectativas simuladas e são ignoradas pelo loader de regressão. Manifesting Generator, Projector, Manifestor e Reflector continuam pendentes de uma referência independente confiável. Uma expectativa divergente exige investigação da entrada, fonte, ambiente e cálculo; jamais deve ser reescrita apenas para fazer o código passar.
+O status `pending` identifica inventários de referências ainda incompletas, não casos de comportamento validado. Essas fixtures têm estrutura, id, fonte pendente e privacidade verificados pelo loader, aparecem no relatório, mas não executam o cálculo nem participam das comparações. Manifesting Generator, Projector, Manifestor e Reflector continuam pendentes de uma referência independente confiável. Uma expectativa divergente exige investigação da entrada, fonte, ambiente e cálculo; jamais deve ser reescrita apenas para fazer o código passar.

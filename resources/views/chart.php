@@ -44,8 +44,8 @@ $jsonFormatted = json_encode(
             type="button"
             id="copy-json-button"
             data-copy-target="chart-json"
-            aria-live="polite"
         >Copiar JSON</button>
+        <span id="copy-json-status" aria-live="polite" aria-atomic="true"></span>
         <pre id="chart-json"><?= htmlspecialchars($jsonFormatted, ENT_QUOTES, 'UTF-8') ?></pre>
 
         <p><a class="button-link" href="/">Novo cálculo</a></p>
@@ -53,49 +53,70 @@ $jsonFormatted = json_encode(
 </main>
 <script>
     (() => {
-        const button = document.getElementById('copy-json-button');
-        const json = document.getElementById(button.dataset.copyTarget);
-        const originalText = button.textContent;
-        let restoreTimer;
-
-        const fallbackCopy = (text) => {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.setAttribute('readonly', '');
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-
-            try {
-                if (!document.execCommand('copy')) {
-                    throw new Error('Copy command failed');
-                }
-            } finally {
-                textarea.remove();
-                button.focus();
+        const initializeCopyJson = () => {
+            const button = document.getElementById('copy-json-button');
+            if (!button || button.dataset.copyInitialized === 'true') {
+                return;
             }
+            const json = document.getElementById(button.dataset.copyTarget);
+            const status = document.getElementById('copy-json-status');
+            if (!json || !status) {
+                return;
+            }
+
+            button.dataset.copyInitialized = 'true';
+            const originalText = button.textContent;
+            let restoreTimer;
+
+            const fallbackCopy = (text) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+
+                try {
+                    if (!document.execCommand('copy')) {
+                        throw new Error('Copy command failed');
+                    }
+                } finally {
+                    textarea.remove();
+                }
+            };
+
+            button.addEventListener('click', async () => {
+                clearTimeout(restoreTimer);
+
+                try {
+                    const text = json.textContent;
+                    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        fallbackCopy(text);
+                    }
+
+                    button.textContent = 'JSON copiado!';
+                    status.textContent = 'JSON copiado!';
+                } catch (error) {
+                    button.textContent = 'Falha ao copiar';
+                    status.textContent = 'Falha ao copiar';
+                }
+
+                restoreTimer = setTimeout(() => {
+                    button.textContent = originalText;
+                    status.textContent = '';
+                }, 2000);
+            });
         };
 
-        button.addEventListener('click', async () => {
-            clearTimeout(restoreTimer);
-
-            try {
-                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    await navigator.clipboard.writeText(json.textContent);
-                } else {
-                    fallbackCopy(json.textContent);
-                }
-
-                button.textContent = 'JSON copiado!';
-            } catch (error) {
-                button.textContent = 'Falha ao copiar';
-            }
-
-            restoreTimer = setTimeout(() => {
-                button.textContent = originalText;
-            }, 2000);
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeCopyJson, { once: true });
+        } else {
+            initializeCopyJson();
+        }
     })();
 </script>
 </body>

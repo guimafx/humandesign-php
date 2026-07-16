@@ -9,79 +9,131 @@ use App\Domain\BirthData;
 use App\Services\HumanDesignCalculator;
 use App\Services\SwissEphemerisProvider;
 
-function assertReferenceValue(mixed $actual, mixed $expected, string $path, string $id): void
+function referenceFailure(string $id, string $field, mixed $expected, mixed $actual): never
 {
-    if (is_array($expected)) {
-        if (!is_array($actual)) {
-            throw new RuntimeException("{$id}: {$path} deveria ser array.");
-        }
-        if (array_is_list($expected) && count($actual) !== count($expected)) {
-            throw new RuntimeException(sprintf(
-                '%s: divergência em %s; esperado %d itens, obtido %d.',
-                $id,
-                $path,
-                count($expected),
-                count($actual)
-            ));
-        }
-        foreach ($expected as $key => $value) {
-            if (!array_key_exists($key, $actual)) {
-                throw new RuntimeException("{$id}: campo calculado ausente: {$path}.{$key}.");
-            }
-            assertReferenceValue($actual[$key], $value, "{$path}.{$key}", $id);
-        }
-        return;
+    throw new RuntimeException(sprintf(
+        '%s: divergência em %s; esperado %s, obtido %s.',
+        $id,
+        $field,
+        var_export($expected, true),
+        var_export($actual, true)
+    ));
+}
+
+function compareActivations(string $id, string $side, array $expected, mixed $actual): void
+{
+    if (!is_array($actual)) {
+        referenceFailure($id, $side, $expected, $actual);
     }
 
-    if ($actual !== $expected) {
-        throw new RuntimeException(sprintf(
-            '%s: divergência em %s; esperado %s, obtido %s.',
-            $id,
-            $path,
-            var_export($expected, true),
-            var_export($actual, true)
-        ));
+    foreach ($expected as $body => $expectedActivation) {
+        if (!is_array($expectedActivation)
+            || !array_key_exists('gate', $expectedActivation)
+            || !array_key_exists('line', $expectedActivation)) {
+            throw new RuntimeException("{$id}: {$side}.{$body} deve informar gate e line.");
+        }
+        $actualActivation = $actual[$body] ?? null;
+        if (!is_array($actualActivation)) {
+            referenceFailure($id, "{$side}.{$body}", $expectedActivation, $actualActivation);
+        }
+
+        if (($actualActivation['body'] ?? null) !== $body) {
+            throw new RuntimeException(sprintf(
+                '%s: %s %s; corpo esperado %s, obtido %s.',
+                $id,
+                $side,
+                $body,
+                var_export($body, true),
+                var_export($actualActivation['body'] ?? null, true)
+            ));
+        }
+
+        foreach (['gate', 'line'] as $part) {
+            if (($actualActivation[$part] ?? null) !== $expectedActivation[$part]) {
+                throw new RuntimeException(sprintf(
+                    '%s: %s %s; esperado %s, obtido %s.',
+                    $id,
+                    $side,
+                    $body,
+                    var_export($expectedActivation, true),
+                    var_export([
+                        'gate' => $actualActivation['gate'] ?? null,
+                        'line' => $actualActivation['line'] ?? null,
+                    ], true)
+                ));
+            }
+        }
     }
 }
 
-$loader = new ReferenceChartLoader();
-$fixtures = $loader->loadAll(__DIR__ . '/reference');
+$collections = (new ReferenceChartLoader())->loadAll();
+if ($collections['active'] === []) {
+    throw new RuntimeException('Nenhuma fixture de referência active encontrada.');
+}
+
 $calculator = new HumanDesignCalculator(new SwissEphemerisProvider(
     '/usr/local/bin/swetest',
     '/usr/local/share/swisseph/ephe'
 ));
-$paths = [
+$scalarPaths = [
     'type' => ['type', 'id'],
     'authority' => ['authority', 'id'],
     'definition' => ['definition', 'id'],
     'profile' => ['profile', 'value'],
-    'active_channels' => ['active_channels'],
-    'defined_centers' => ['defined_centers'],
-    'personality' => ['personality'],
-    'design' => ['design'],
 ];
 
-foreach ($fixtures as $fixture) {
-    echo $fixture['id'] . "\n";
-    $birth = BirthData::fromArray([
+foreach ($collections['active'] as $fixture) {
+    $id = $fixture['id'];
+    $chart = $calculator->calculate(BirthData::fromArray([
         'name' => $fixture['label'],
         ...$fixture['birth'],
-    ]);
-    $chart = $calculator->calculate($birth);
+    ]));
 
     foreach ($fixture['expected'] as $field => $expected) {
-        if (!isset($paths[$field])) {
-            throw new RuntimeException("{$fixture['id']}: campo expected não suportado: {$field}.");
-        }
-        $actual = $chart;
-        foreach ($paths[$field] as $segment) {
-            if (!array_key_exists($segment, $actual)) {
-                throw new RuntimeException("{$fixture['id']}: campo calculado ausente: {$field}.");
+        if (isset($scalarPaths[$field])) {
+            $actual = $chart;
+            foreach ($scalarPaths[$field] as $segment) {
+                $actual = is_array($actual) && array_key_exists($segment, $actual)
+                    ? $actual[$segment]
+                    : null;
             }
-            $actual = $actual[$segment];
+            if ($actual !== $expected) {
+                referenceFailure($id, $field, $expected, $actual);
+            }
+            continue;
         }
-        assertReferenceValue($actual, $expected, $field, $fixture['id']);
+
+        if ($field === 'active_channels' || $field === 'defined_centers') {
+            $actual = $chart[$field] ?? null;
+            if ($actual !== $expected) {
+                referenceFailure($id, $field, $expected, $actual);
+            }
+            continue;
+        }
+
+        if ($field === 'personality' || $field === 'design') {
+            compareActivations($id, $field, $expected, $chart[$field] ?? null);
+            continue;
+        }
+
+        throw new RuntimeException("{$id}: campo expected não suportado: {$field}.");
     }
+
+    echo "Reference active: {$id} OK\n";
+}
+
+$pendingById = [];
+foreach ($collections['pending'] as $fixture) {
+    $pendingById[$fixture['id']] = true;
+}
+foreach (['manifesting-generator-001', 'projector-001', 'manifestor-001', 'reflector-001'] as $id) {
+    if (isset($pendingById[$id])) {
+        echo "Reference pending: {$id}\n";
+        unset($pendingById[$id]);
+    }
+}
+foreach (array_keys($pendingById) as $id) {
+    echo "Reference pending: {$id}\n";
 }
 
 echo "Reference Charts test OK\n";
