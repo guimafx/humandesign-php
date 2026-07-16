@@ -8,6 +8,13 @@ use App\Domain\Activation;
 
 final class ActivationMapper
 {
+    private const CIRCLE_DEGREES = 360.0;
+    private const GATE_COUNT = 64;
+    private const LINES_PER_GATE = 6;
+    private const COLORS_PER_LINE = 6;
+    private const TONES_PER_COLOR = 6;
+    private const BASES_PER_TONE = 5;
+
     private const RAVE_ORDER = [
         41,19,13,49,30,55,37,63,
         22,36,25,17,21,51,42,3,
@@ -19,33 +26,55 @@ final class ActivationMapper
         26,11,10,58,38,54,61,60,
     ];
 
-    // Valor provisório: validar contra charts conhecidos.
-    private const RAVE_OFFSET_DEGREES = 0.0;
+    /*
+     * A sequência começa no limite inicial do portão 41, em 302° da
+     * longitude eclíptica. Os portões avançam junto com a longitude zodiacal
+     * (sentido anti-horário no círculo astronômico), portanto deslocamos esse
+     * ponto para 0° subtraindo 302° e normalizando o resultado.
+     */
+    private const RAVE_START_LONGITUDE_DEGREES = 302.0;
 
     public function map(string $body, float $longitude): Activation
     {
-        $adjusted = $this->normalize($longitude - self::RAVE_OFFSET_DEGREES);
+        $adjusted = $this->normalize(
+            $longitude - self::RAVE_START_LONGITUDE_DEGREES
+        );
 
-        $gateSize = 360.0 / 64.0;
-        $lineSize = $gateSize / 6.0;
-        $colorSize = $lineSize / 6.0;
-        $toneSize = $colorSize / 6.0;
-        $baseSize = $toneSize / 5.0;
+        $gateSize = self::CIRCLE_DEGREES / self::GATE_COUNT;
+        $lineSize = $gateSize / self::LINES_PER_GATE;
+        $colorSize = $lineSize / self::COLORS_PER_LINE;
+        $toneSize = $colorSize / self::TONES_PER_COLOR;
+        $baseSize = $toneSize / self::BASES_PER_TONE;
 
-        $gateIndex = min(63, (int) floor($adjusted / $gateSize));
+        $gateIndex = min(self::GATE_COUNT - 1, (int) floor($adjusted / $gateSize));
         $gate = self::RAVE_ORDER[$gateIndex];
 
-        $insideGate = fmod($adjusted, $gateSize);
-        $line = min(6, (int) floor($insideGate / $lineSize) + 1);
+        $insideGate = $adjusted - ($gateIndex * $gateSize);
+        $lineIndex = min(
+            self::LINES_PER_GATE - 1,
+            (int) floor($insideGate / $lineSize)
+        );
+        $line = $lineIndex + 1;
 
-        $insideLine = fmod($insideGate, $lineSize);
-        $color = min(6, (int) floor($insideLine / $colorSize) + 1);
+        $insideLine = $insideGate - ($lineIndex * $lineSize);
+        $colorIndex = min(
+            self::COLORS_PER_LINE - 1,
+            (int) floor($insideLine / $colorSize)
+        );
+        $color = $colorIndex + 1;
 
-        $insideColor = fmod($insideLine, $colorSize);
-        $tone = min(6, (int) floor($insideColor / $toneSize) + 1);
+        $insideColor = $insideLine - ($colorIndex * $colorSize);
+        $toneIndex = min(
+            self::TONES_PER_COLOR - 1,
+            (int) floor($insideColor / $toneSize)
+        );
+        $tone = $toneIndex + 1;
 
-        $insideTone = fmod($insideColor, $toneSize);
-        $base = min(5, (int) floor($insideTone / $baseSize) + 1);
+        $insideTone = $insideColor - ($toneIndex * $toneSize);
+        $base = min(
+            self::BASES_PER_TONE,
+            (int) floor($insideTone / $baseSize) + 1
+        );
 
         return new Activation(
             $body,
@@ -60,7 +89,8 @@ final class ActivationMapper
 
     private function normalize(float $degrees): float
     {
-        $degrees = fmod($degrees, 360.0);
-        return $degrees < 0 ? $degrees + 360.0 : $degrees;
+        $degrees = fmod($degrees, self::CIRCLE_DEGREES);
+
+        return $degrees < 0.0 ? $degrees + self::CIRCLE_DEGREES : $degrees;
     }
 }

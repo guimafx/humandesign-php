@@ -68,10 +68,21 @@ do Swiss Ephemeris. Configure seus caminhos com `SWETEST_BIN` e
 EPHEMERIS_DRIVER=swiss
 ```
 
-Esse modo produz longitudes astronômicas reais. A conversão das longitudes em
-Portões, Linhas, Cores, Tons e Bases ainda depende da validação do offset da
-Mandala Rave. O modo `demo` permanece disponível apenas para testes da
+Esse modo produz longitudes astronômicas reais. O mapeamento dessas longitudes
+na Mandala Rave foi validado contra um mapa conhecido do myBodyGraph: Guilherme
+Borges Viana, nascimento em 27/03/1982 às 11:05 em `America/Sao_Paulo`
+(`1982-03-27 14:05:00 UTC`) e Design de referência em
+`1981-12-30 08:47:00 UTC`. A validação cobre Sol, Terra, Lua, nodos verdadeiros,
+Mercúrio, Vênus, Marte, Júpiter, Saturno, Urano, Netuno e Plutão, em Personality
+e Design.
+
+A sequência Rave avança com a longitude zodiacal a partir do limite inicial do
+portão 41 em 302°. O modo `demo` permanece disponível apenas para testes da
 interface, enquanto o modo `strict` bloqueia cálculos sem um provedor real.
+
+Ainda falta integrar todos os corpos e o lado Design ao
+`HumanDesignCalculator`. O mapa visual completo também ainda não está
+implementado.
 
 ## Estrutura
 
@@ -91,7 +102,7 @@ tests/
 
 ## Próximos passos
 
-1. Validar o offset da Mandala Rave.
-2. Adicionar todos os corpos celestes.
+1. Integrar todos os corpos celestes ao cálculo principal.
+2. Integrar o lado Design ao cálculo principal.
 3. Corrigir e validar centros por canais completos.
-4. Criar testes contra mapas conhecidos.
+4. Implementar o mapa visual completo.
