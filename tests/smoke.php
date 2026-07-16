@@ -20,10 +20,16 @@ $birth = BirthData::fromArray([
 $calculator = new HumanDesignCalculator(new DemoEphemerisProvider());
 $result = $calculator->calculate($birth);
 
-assert(isset($result['metadata']));
-assert(isset($result['personality']['SUN']));
-assert(isset($result['design']['SUN']));
-assert(isset($result['design_date']));
-assert($result['metadata']['reliable'] === false);
+if (!isset(
+    $result['metadata'],
+    $result['personality']['SUN'],
+    $result['design']['SUN'],
+    $result['design_date'],
+    $result['type'],
+    $result['authority'],
+    $result['definition']
+) || $result['metadata']['reliable'] !== false) {
+    throw new RuntimeException('Estrutura do resultado demonstrativo inválida.');
+}
 
 echo "Smoke test OK\n";

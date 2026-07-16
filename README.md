@@ -89,6 +89,13 @@ A referência validada é `1981-12-30 08:47:00 UTC` para o nascimento acima.
 As 26 ativações alimentam a união ordenada `active_gates`, e canais completos
 e centros definidos são recalculados a partir dessa união dos dois lados.
 
+A classificação usa o grafo dos canais completos entre centros. Tipo verifica
+conectividade funcional (por qualquer caminho de canais definidos) entre motores
+e Garganta; definição é o número de componentes conectados desse mesmo grafo.
+Autoridade segue a hierarquia de centros definidos: Plexo Solar, Sacral, Baço,
+Ego, G, Mental e Lunar. Um mapa sem centros recebe `No Definition`, pois Single,
+Split, Triple Split e Quadruple Split pressupõem ao menos um centro definido.
+
 ## Estrutura
 
 ```text
