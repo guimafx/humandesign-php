@@ -14,6 +14,7 @@ final class HumanDesignCalculator
     private readonly CenterCalculator $centerCalculator;
     private readonly DefinitionCalculator $definitionCalculator;
     private readonly TypeCalculator $typeCalculator;
+    private readonly ChartIdentityCalculator $chartIdentityCalculator;
     private readonly AuthorityCalculator $authorityCalculator;
     private readonly ProfileCalculator $profileCalculator;
     private readonly IncarnationCrossCalculator $incarnationCrossCalculator;
@@ -57,7 +58,8 @@ final class HumanDesignCalculator
         ?TypeCalculator $typeCalculator = null,
         ?AuthorityCalculator $authorityCalculator = null,
         ?ProfileCalculator $profileCalculator = null,
-        ?IncarnationCrossCalculator $incarnationCrossCalculator = null
+        ?IncarnationCrossCalculator $incarnationCrossCalculator = null,
+        ?ChartIdentityCalculator $chartIdentityCalculator = null
     ) {
         $this->mapper = new ActivationMapper();
         $this->designDateCalculator = $designDateCalculator
@@ -69,6 +71,8 @@ final class HumanDesignCalculator
             ?? new DefinitionCalculator($this->channelCalculator);
         $this->typeCalculator = $typeCalculator
             ?? new TypeCalculator($this->channelCalculator);
+        $this->chartIdentityCalculator = $chartIdentityCalculator
+            ?? new ChartIdentityCalculator();
         $this->authorityCalculator = $authorityCalculator ?? new AuthorityCalculator();
         $this->profileCalculator = $profileCalculator ?? new ProfileCalculator();
         $this->incarnationCrossCalculator = $incarnationCrossCalculator
@@ -102,6 +106,7 @@ final class HumanDesignCalculator
         $activeGates = array_map('intval', array_keys($activeGates));
         $activeChannels = $this->channelCalculator->calculate($activeGates);
         $definedCenters = $this->centerCalculator->calculate($activeChannels);
+        $type = $this->typeCalculator->calculate($definedCenters, $activeChannels);
 
         return [
             'metadata' => [
@@ -128,7 +133,8 @@ final class HumanDesignCalculator
             'active_gates' => $activeGates,
             'active_channels' => $activeChannels,
             'defined_centers' => $definedCenters,
-            'type' => $this->typeCalculator->calculate($definedCenters, $activeChannels),
+            'type' => $type,
+            'identity' => $this->chartIdentityCalculator->calculate($type),
             'authority' => $this->authorityCalculator->calculate($definedCenters),
             'definition' => $this->definitionCalculator->calculate($definedCenters, $activeChannels),
             'profile' => $this->profileCalculator->calculate(
