@@ -24,6 +24,7 @@ O núcleo corresponde ao escopo `v0.1.0-alpha`: é utilizável para desenvolvime
 - gates ativos, canais completos e centros definidos;
 - tipo, autoridade, definição, perfil, strategy, signature e not-self theme;
 - estrutura ordenada dos quatro gates da Cruz de Encarnação.
+- botão acessível “Copiar JSON” na tela de resultado.
 
 ## Funcionalidades pendentes
 
@@ -130,9 +131,11 @@ O script executa, em ordem alfabética, todos os arquivos PHP diretamente em `te
 
 ### Mapas de referência
 
-Cada fixture PHP retorna um array com `id`, `label`, `birth`, `expected`, `source` e `privacy`; fixtures ativas usam também `status => active`. `birth` registra data, hora, timezone e coordenadas opcionais. `source` identifica provedor, referência verificável e data da conferência. `privacy` registra consentimento e anonimização.
+Cada fixture PHP retorna um array com `status`, `id`, `label`, `birth`, `expected`, `source` e `privacy`. `birth` registra data, hora, timezone e coordenadas opcionais. `source` identifica provedor, referência verificável e data da conferência. `privacy` registra consentimento e anonimização.
 
-Somente campos presentes em `expected` são comparados. São aceitos `type`, `authority`, `definition`, `profile`, `active_channels`, `defined_centers`, `personality` e `design`. Templates `status => pending` documentam lacunas, podem manter nascimento, fonte e expectativas vazios e não entram na regressão. Para ativá-los, é obrigatório preencher dados reais, uma fonte independente confiável e consentimento, então remover o motivo de pendência. Resultados esperados nunca devem ser ajustados para agradar ao código.
+Somente campos presentes em `expected` são comparados. São aceitos `type`, `authority`, `definition`, `profile`, `active_channels`, `defined_centers`, `personality` e `design`. Nesta etapa, apenas `generator-emotional-001`, um Generator Emotional Split 3/6, está `active`. Manifesting Generator, Projector, Manifestor e Reflector permanecem como templates `pending`: são validados estruturalmente e relatados, mas não são calculados nem comprovam comportamento. Para ativá-los, é obrigatório preencher dados reais, uma fonte independente confiável e consentimento ou anonimização. Resultados esperados nunca devem ser ajustados para agradar ao código.
+
+Na interface, a tela de resultado mantém o JSON completo formatado e oferece o botão “Copiar JSON”, com Clipboard API, fallback local e anúncio acessível do resultado da cópia.
 
 ## Arquitetura
 

@@ -4,86 +4,85 @@ declare(strict_types=1);
 
 final class ReferenceChartLoader
 {
-    private const REQUIRED_FIELDS = ['id', 'label', 'birth', 'expected', 'source', 'privacy'];
+    private const STATUSES = ['active', 'pending'];
+    private const REQUIRED_FIELDS = ['status', 'id', 'label', 'birth', 'expected', 'source', 'privacy'];
 
-    /** @return list<array<string, mixed>> */
-    public function loadAll(string $directory): array
+    private readonly string $directory;
+
+    public function __construct(?string $directory = null)
     {
-        if (!is_dir($directory)) {
+        $directory ??= dirname(__DIR__) . '/reference';
+        $realDirectory = realpath($directory);
+
+        if ($realDirectory === false || !is_dir($realDirectory)) {
             throw new RuntimeException("Diretório de fixtures inexistente: {$directory}");
         }
 
-        $files = glob(rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '*.php');
+        $this->directory = rtrim($realDirectory, DIRECTORY_SEPARATOR);
+    }
+
+    /** @return array{active: list<array<string, mixed>>, pending: list<array<string, mixed>>} */
+    public function loadAll(): array
+    {
+        $files = glob($this->directory . DIRECTORY_SEPARATOR . '*.php');
         if ($files === false) {
-            throw new RuntimeException("Não foi possível listar fixtures em {$directory}");
+            throw new RuntimeException("Não foi possível listar fixtures em {$this->directory}");
         }
 
         sort($files, SORT_STRING);
-        $fixtures = [];
+        $collections = ['active' => [], 'pending' => []];
         $ids = [];
 
         foreach ($files as $file) {
             $fixture = $this->read($file);
-            $status = $fixture['status'] ?? 'active';
+            $this->validate($fixture, basename($file));
 
-            if ($status === 'pending') {
-                continue;
-            }
-            if ($status !== 'active') {
-                throw new RuntimeException(sprintf(
-                    'Fixture %s possui status inválido: %s.',
-                    basename($file),
-                    is_scalar($status) ? (string) $status : get_debug_type($status)
-                ));
+            $id = $fixture['id'];
+            if (isset($ids[$id])) {
+                throw new RuntimeException("Fixture com id duplicado: {$id}.");
             }
 
-            $this->validate($fixture, $file);
-            if (isset($ids[$fixture['id']])) {
-                throw new RuntimeException("Fixture com id duplicado: {$fixture['id']}.");
-            }
-
-            $ids[$fixture['id']] = true;
-            $fixtures[] = $fixture;
+            $ids[$id] = true;
+            $collections[$fixture['status']][] = $fixture;
         }
 
-        return $fixtures;
-    }
-
-    /** @return array<string, mixed> */
-    public function load(string $file): array
-    {
-        $fixture = $this->read($file);
-        if (($fixture['status'] ?? 'active') !== 'active') {
-            throw new RuntimeException('Fixture não está ativa: ' . basename($file) . '.');
-        }
-
-        $this->validate($fixture, $file);
-        return $fixture;
+        return $collections;
     }
 
     /** @return array<string, mixed> */
     private function read(string $file): array
     {
-        if (!is_file($file)) {
-            throw new RuntimeException("Fixture inexistente: {$file}");
+        $realFile = realpath($file);
+        if ($realFile === false
+            || dirname($realFile) !== $this->directory
+            || pathinfo($realFile, PATHINFO_EXTENSION) !== 'php') {
+            throw new RuntimeException('Fixture fora do diretório de referências ou com extensão inválida.');
         }
 
-        $fixture = require $file;
+        $fixture = require $realFile;
         if (!is_array($fixture)) {
-            throw new RuntimeException('Fixture deve retornar array: ' . basename($file) . '.');
+            throw new RuntimeException('Fixture deve retornar array: ' . basename($realFile) . '.');
         }
 
         return $fixture;
     }
 
     /** @param array<string, mixed> $fixture */
-    private function validate(array $fixture, string $file): void
+    private function validate(array $fixture, string $name): void
     {
-        $name = basename($file);
         foreach (self::REQUIRED_FIELDS as $field) {
             if (!array_key_exists($field, $fixture)) {
                 throw new RuntimeException("Fixture {$name}: campo obrigatório ausente: {$field}.");
             }
+        }
+
+        $status = $fixture['status'];
+        if (!is_string($status) || !in_array($status, self::STATUSES, true)) {
+            throw new RuntimeException(sprintf(
+                'Fixture %s possui status inválido: %s.',
+                $name,
+                is_scalar($status) ? (string) $status : get_debug_type($status)
+            ));
         }
 
         foreach (['id', 'label'] as $field) {
@@ -92,6 +91,17 @@ final class ReferenceChartLoader
             }
         }
 
+        if ($status === 'active') {
+            $this->validateActive($fixture, $name);
+            return;
+        }
+
+        $this->validatePending($fixture, $name);
+    }
+
+    /** @param array<string, mixed> $fixture */
+    private function validateActive(array $fixture, string $name): void
+    {
         $this->requireKeys($fixture['birth'], ['date', 'time', 'timezone', 'latitude', 'longitude'], $name, 'birth');
         $this->requireKeys($fixture['source'], ['provider', 'reference', 'checked_at'], $name, 'source');
         $this->requireKeys($fixture['privacy'], ['consent', 'anonymized'], $name, 'privacy');
@@ -99,8 +109,10 @@ final class ReferenceChartLoader
         if (!is_array($fixture['expected']) || $fixture['expected'] === []) {
             throw new RuntimeException("Fixture {$name}: expected deve conter ao menos um resultado validado.");
         }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $fixture['birth']['date'])
-            || !preg_match('/^\d{2}:\d{2}$/', (string) $fixture['birth']['time'])) {
+        if (!is_string($fixture['birth']['date'])
+            || preg_match('/^\d{4}-\d{2}-\d{2}$/', $fixture['birth']['date']) !== 1
+            || !is_string($fixture['birth']['time'])
+            || preg_match('/^\d{2}:\d{2}$/', $fixture['birth']['time']) !== 1) {
             throw new RuntimeException("Fixture {$name}: birth.date ou birth.time possui formato inválido.");
         }
         try {
@@ -113,7 +125,8 @@ final class ReferenceChartLoader
                 throw new RuntimeException("Fixture {$name}: source.{$field} deve ser string não vazia.");
             }
         }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $fixture['source']['checked_at'])) {
+        if (!is_string($fixture['source']['checked_at'])
+            || preg_match('/^\d{4}-\d{2}-\d{2}$/', $fixture['source']['checked_at']) !== 1) {
             throw new RuntimeException("Fixture {$name}: source.checked_at deve usar YYYY-MM-DD.");
         }
         foreach (['consent', 'anonymized'] as $field) {
@@ -121,8 +134,26 @@ final class ReferenceChartLoader
                 throw new RuntimeException("Fixture {$name}: privacy.{$field} deve ser booleano.");
             }
         }
-        if ($fixture['privacy']['consent'] !== true) {
-            throw new RuntimeException("Fixture {$name}: consentimento é obrigatório para fixture ativa.");
+        if ($fixture['privacy']['consent'] !== true && $fixture['privacy']['anonymized'] !== true) {
+            throw new RuntimeException("Fixture {$name}: consentimento ou anonimização é obrigatório.");
+        }
+    }
+
+    /** @param array<string, mixed> $fixture */
+    private function validatePending(array $fixture, string $name): void
+    {
+        if (!is_array($fixture['birth']) || !is_array($fixture['expected'])) {
+            throw new RuntimeException("Fixture {$name}: birth e expected devem ser arrays, mesmo quando pendentes.");
+        }
+        $this->requireKeys($fixture['source'], ['provider', 'reference', 'checked_at'], $name, 'source');
+        $this->requireKeys($fixture['privacy'], ['consent', 'anonymized'], $name, 'privacy');
+        if (!is_string($fixture['source']['reference']) || trim($fixture['source']['reference']) === '') {
+            throw new RuntimeException("Fixture {$name}: source.reference deve indicar a referência necessária.");
+        }
+        foreach (['consent', 'anonymized'] as $field) {
+            if (!is_bool($fixture['privacy'][$field])) {
+                throw new RuntimeException("Fixture {$name}: privacy.{$field} deve ser booleano.");
+            }
         }
     }
 

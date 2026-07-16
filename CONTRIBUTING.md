@@ -12,11 +12,12 @@ Crie uma branch curta a partir da base atual, por exemplo `fix/fronteira-mandala
 
 Toda mudança de cálculo precisa de teste adequado. Para adicionar um mapa:
 
-1. obtenha consentimento explícito ou use dados publicados para essa finalidade;
-2. registre data, hora, timezone, conversão UTC, origem da referência e precisão disponível;
-3. anonimize nome e outros dados quando a identidade não for necessária;
-4. adicione expectativas de Personality e Design sem copiar dados irrelevantes;
-5. execute a suíte completa em ambiente Swiss conhecido.
+1. documente a origem independente da referência;
+2. obtenha consentimento explícito ou anonimize os dados antes de incluí-los;
+3. registre data, hora, timezone, conversão UTC e precisão disponível;
+4. confira os resultados contra uma fonte independente do motor;
+5. adicione expectativas de Personality e Design sem copiar dados irrelevantes;
+6. execute a suíte completa em ambiente Swiss conhecido.
 
 Não modifique resultados esperados apenas para fazer os testes passarem. Investigue a divergência e documente a fonte e a decisão matemática. Fontes externas também precisam de avaliação de licença; evite incorporar tabelas ou textos sem permissão.
 
