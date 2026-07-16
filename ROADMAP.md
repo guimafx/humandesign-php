@@ -21,14 +21,16 @@ O roadmap registra intenção, não compromisso de prazo. Itens concluídos desc
 
 ## v0.2.0
 
-- [ ] infraestrutura de mapas de referência
-- [ ] mais casos de Generator
+- [x] infraestrutura de mapas de referência e runner multicaso
+- [x] Generator Emotional Split 3/6 (referência Guilherme)
 - [ ] Manifesting Generator
 - [ ] Projector
 - [ ] Manifestor
 - [ ] Reflector
 - [ ] todas as autoridades
 - [ ] Single, Split, Triple Split e Quadruple Split
+
+Os quatro tipos ainda sem mapa completo possuem templates `pending` em `tests/reference/`. Eles só poderão ser ativados quando houver nascimento, resultados esperados independentes, fonte verificável e consentimento; datas e expectativas não serão inferidas do próprio motor.
 
 ## v0.3.0
 

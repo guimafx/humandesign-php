@@ -7,10 +7,9 @@ require dirname(__DIR__) . '/app/Core/Autoloader.php';
 use App\Services\ChannelCalculator;
 use App\Services\TypeCalculator;
 
-$loadReference = require __DIR__ . '/reference/guilherme.php';
-$reference = $loadReference();
+$reference = require __DIR__ . '/reference/guilherme.php';
 
-if ($reference['chart']['type'] !== $reference['expected']['type']) {
+if ($reference['expected']['type'] !== 'generator') {
     throw new RuntimeException('Tipo do mapa Guilherme divergente.');
 }
 

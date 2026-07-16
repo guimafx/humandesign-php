@@ -8,10 +8,9 @@ use App\Services\CenterCalculator;
 use App\Services\ChannelCalculator;
 use App\Services\DefinitionCalculator;
 
-$loadReference = require __DIR__ . '/reference/guilherme.php';
-$reference = $loadReference();
+$reference = require __DIR__ . '/reference/guilherme.php';
 
-if ($reference['chart']['definition'] !== $reference['expected']['definition']) {
+if ($reference['expected']['definition'] !== 'split') {
     throw new RuntimeException('Definição do mapa Guilherme divergente.');
 }
 

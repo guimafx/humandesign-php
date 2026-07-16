@@ -126,7 +126,13 @@ O resultado real contém as 26 ativações e as demais classificações. Veja [e
 ./bin/run-tests
 ```
 
-O script executa, em ordem alfabética, todos os arquivos PHP diretamente em `tests/` e encerra na primeira falha. Os testes de integração exigem `swetest` e os `.se1` nos caminhos padrão; não há dependência de PHPUnit.
+O script executa, em ordem alfabética, todos os arquivos PHP diretamente em `tests/` e encerra na primeira falha. Isso inclui `tests/reference_charts.php`, que carrega em ordem estável as fixtures ativas de `tests/reference/`. Os testes de integração exigem `swetest` e os `.se1` nos caminhos padrão; não há dependência de PHPUnit.
+
+### Mapas de referência
+
+Cada fixture PHP retorna um array com `id`, `label`, `birth`, `expected`, `source` e `privacy`; fixtures ativas usam também `status => active`. `birth` registra data, hora, timezone e coordenadas opcionais. `source` identifica provedor, referência verificável e data da conferência. `privacy` registra consentimento e anonimização.
+
+Somente campos presentes em `expected` são comparados. São aceitos `type`, `authority`, `definition`, `profile`, `active_channels`, `defined_centers`, `personality` e `design`. Templates `status => pending` documentam lacunas, podem manter nascimento, fonte e expectativas vazios e não entram na regressão. Para ativá-los, é obrigatório preencher dados reais, uma fonte independente confiável e consentimento, então remover o motivo de pendência. Resultados esperados nunca devem ser ajustados para agradar ao código.
 
 ## Arquitetura
 

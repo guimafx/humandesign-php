@@ -6,10 +6,9 @@ require dirname(__DIR__) . '/app/Core/Autoloader.php';
 
 use App\Services\AuthorityCalculator;
 
-$loadReference = require __DIR__ . '/reference/guilherme.php';
-$reference = $loadReference();
+$reference = require __DIR__ . '/reference/guilherme.php';
 
-if ($reference['chart']['authority'] !== $reference['expected']['authority']) {
+if ($reference['expected']['authority'] !== 'emotional') {
     throw new RuntimeException('Autoridade do mapa Guilherme divergente.');
 }
 

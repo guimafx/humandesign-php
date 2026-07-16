@@ -39,6 +39,10 @@ button, .button-link {
     text-decoration: none;
     display: inline-block;
 }
+button:focus-visible, .button-link:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 3px;
+}
 .warning {
     padding: 14px 16px;
     background: #fff7d6;

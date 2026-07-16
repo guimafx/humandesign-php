@@ -20,6 +20,10 @@ Toda mudança de cálculo precisa de teste adequado. Para adicionar um mapa:
 
 Não modifique resultados esperados apenas para fazer os testes passarem. Investigue a divergência e documente a fonte e a decisão matemática. Fontes externas também precisam de avaliação de licença; evite incorporar tabelas ou textos sem permissão.
 
+Crie a fixture em `tests/reference/` como PHP que retorna um array. Para um caso ativo, informe `status => active`, `id`, `label`, `birth` (`date`, `time`, `timezone`, `latitude`, `longitude`), `expected`, `source` (`provider`, `reference`, `checked_at`) e `privacy` (`consent`, `anonymized`). O campo `expected` pode conter somente os resultados realmente conferidos entre `type`, `authority`, `definition`, `profile`, `active_channels`, `defined_centers`, `personality` e `design`; omitir um campo é preferível a inventá-lo.
+
+Se ainda faltarem nascimento, resultado independente, fonte ou consentimento, mantenha um template com `status => pending`, campos desconhecidos vazios e `pending_reason`. Casos pending documentam trabalho futuro e não são executados. Depois de obter e conferir a referência, preencha todos os campos obrigatórios, altere o status para `active` e rode `./bin/run-tests`. Não use a saída atual do motor como fonte das próprias expectativas.
+
 ## Issues e pull requests
 
 Antes de abrir uma issue, procure relatos existentes e forneça reprodução mínima, versões e mensagens de erro. Não publique credenciais nem dados de nascimento privados. Para mudanças, descreva problema, decisão, impacto, validação e limitações. Abra um pull request de escopo único e vincule a issue quando existir.

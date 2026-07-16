@@ -39,3 +39,11 @@ Há testes de fronteira imediatamente antes, exatamente em e depois dos limites 
 ## Limitações
 
 Um único mapa completo é insuficiente para afirmar cobertura geral. Os testes unitários exercitam classificadores com casos sintéticos, mas não substituem mapas completos independentes para diferentes datas, fusos, tipos, autoridades e definições. Novas referências devem ter origem documentada, consentimento para dados pessoais e resultados que não sejam alterados apenas para acomodar a implementação.
+
+## Fixtures e regressão multicaso
+
+As referências ficam em `tests/reference/` e são carregadas por `tests/support/ReferenceChartLoader.php`, sem PHPUnit. Uma fixture ativa retorna `status`, `id`, `label`, `birth`, `expected`, `source` e `privacy`. O nascimento contém `date`, `time`, `timezone`, `latitude` e `longitude`; a fonte contém `provider`, `reference` e `checked_at`; privacidade contém os booleanos `consent` e `anonymized`.
+
+O runner `tests/reference_charts.php` calcula cada fixture ativa com Swiss Ephemeris e compara somente expectativas declaradas: IDs de tipo, autoridade e definição, valor do perfil, canais, centros e, quando fornecidas, ativações de Personality e Design. Arrays ordenados são comparados integralmente. A primeira divergência interrompe a execução e informa o id.
+
+Fixtures `pending` são inventários de referências ainda ausentes, não casos de teste: não têm datas nem expectativas simuladas e são ignoradas pelo loader de regressão. Manifesting Generator, Projector, Manifestor e Reflector continuam pendentes de uma referência independente confiável. Uma expectativa divergente exige investigação da entrada, fonte, ambiente e cálculo; jamais deve ser reescrita apenas para fazer o código passar.
